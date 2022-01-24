@@ -1,0 +1,50 @@
+// Copyright Tencent Games, Inc. All Rights Reserved.
+
+/*=============================================================================
+	ACMWaterPropagateSplat.usf: ACMWater PropagateSplat
+=============================================================================*/
+
+#include "/Engine/Private/Common.ush"
+
+// vertex shader entry point
+void MainVS(
+    in float4 InPosition : ATTRIBUTE0,
+    in float2 InTexCoord : ATTRIBUTE1,
+    out float2 OutTexCoord : TEXCOORD0,
+    out float4 OutPosition : SV_POSITION
+    )
+{
+    DrawRectangle(InPosition, InTexCoord, OutPosition, OutTexCoord);
+}
+
+Texture2D PreviewATexture;
+SamplerState PreviewATextureSampler;
+Texture2D PreviewBTexture;
+SamplerState PreviewBTextureSampler;
+float WaveDampeningScalar;
+float FoamDampeningScalar;
+float WaveTravelSpeedScalar;
+float TexelSizeScalar;
+
+// pixel shader entry point
+void MainPS(float2 UV : TEXCOORD0, out float4 OutColor : SV_Target0)
+{
+    float2 TexCoordA = UV + TexelSizeScalar * float2(-1.0f, 0.0f);
+    float4 HeightColorA = Texture2DSample(PreviewATexture, PreviewATextureSampler, TexCoordA);
+    float2 TexCoordB = UV + TexelSizeScalar * float2(1.0f, 0.0f);
+    float4 HeightColorB = Texture2DSample(PreviewATexture, PreviewATextureSampler, TexCoordB);
+    float2 TexCoordC = UV + TexelSizeScalar * float2(0.0f, -1.0f);
+    float4 HeightColorC = Texture2DSample(PreviewATexture, PreviewATextureSampler, TexCoordC);
+    float2 TexCoordD = UV + TexelSizeScalar * float2(0.0f, 1.0f);
+    float4 HeightColorD = Texture2DSample(PreviewATexture, PreviewATextureSampler, TexCoordD);
+
+    float4 HeightColor = Texture2DSample(PreviewATexture, PreviewATextureSampler, UV);
+
+    float Wave_Value_A = (HeightColor.r * 4.0f +  (HeightColorA.r + HeightColorB.r + HeightColorC.r + HeightColorD.r - HeightColor.r * 4.0f) * WaveTravelSpeedScalar) * 0.5f;
+    float Wave_Value_B = Texture2DSample(PreviewBTexture, PreviewBTextureSampler, UV).r;
+    float Foam_Value = saturate(HeightColor.g) * FoamDampeningScalar;
+    float4 Result = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    Result.r = (Wave_Value_A - Wave_Value_B) * WaveDampeningScalar;
+    Result.g = Foam_Value;
+    OutColor = Result;
+}

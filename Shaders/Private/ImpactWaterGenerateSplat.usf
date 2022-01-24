@@ -1,0 +1,56 @@
+// Copyright Tencent Games, Inc. All Rights Reserved.
+
+/*=============================================================================
+	ACMWaterGenerateSplat.usf: ACMWater GenerateSplat
+=============================================================================*/
+
+#include "/Engine/Private/Common.ush"
+
+// vertex shader entry point
+void MainVS(
+    in float4 InPosition : ATTRIBUTE0,
+    in float2 InTexCoord : ATTRIBUTE1,
+    out float2 OutTexCoord : TEXCOORD0,
+    out float4 OutPosition : SV_POSITION
+    )
+{
+    DrawRectangle(InPosition, InTexCoord, OutPosition, OutTexCoord);
+}
+
+float4 AddForceSplat(float2 TexCoord, int ParamIndex, float TexelSize)
+{
+	float2 TexCoord_HitStamp = TexCoord - GenerateWaterSplatUniforms.HitLocationArray[ParamIndex].xy;
+	float4 HitStampColor = Texture2DSample(GenerateWaterSplatUniforms.HitStampTexture, GenerateWaterSplatUniforms.HitStampTextureSampler, TexCoord_HitStamp);
+    float HitStampValue = 1.0f - saturate(HitStampColor.r);
+
+    float RippleSizeRangeMax = GenerateWaterSplatUniforms.HitParam0Array[ParamIndex].w;
+    float RippleSizeRangeMin = GenerateWaterSplatUniforms.HitParam0Array[ParamIndex].z;
+    float RippleSizeInPercent = GenerateWaterSplatUniforms.HitParam0Array[ParamIndex].y;
+    float RippleStrength = GenerateWaterSplatUniforms.HitParam0Array[ParamIndex].x;
+    float FoamSizeRangeMax = GenerateWaterSplatUniforms.HitParam1Array[ParamIndex].w;
+    float FoamSizeRangeMin = GenerateWaterSplatUniforms.HitParam1Array[ParamIndex].z;
+    float FoamSizeInPercent = GenerateWaterSplatUniforms.HitParam1Array[ParamIndex].y;
+    float FoamStrength = GenerateWaterSplatUniforms.HitParam1Array[ParamIndex].x;
+
+    float TexelSizeScale = TexelSize * 1000.0f;
+    float RipplePowValue = lerp(RippleSizeRangeMax * TexelSizeScale, RippleSizeRangeMin * TexelSizeScale, saturate(RippleSizeInPercent));
+    float RippleValue = pow(HitStampValue, RipplePowValue) * saturate(RippleStrength);
+    RippleValue = clamp(RippleValue, -1.0f, 1.0f) * 3.0f;
+
+    float FoamPowValue = lerp(FoamSizeRangeMax * TexelSizeScale, FoamSizeRangeMin * TexelSizeScale, saturate(FoamSizeInPercent));
+    float FoamValue = pow(HitStampValue, FoamPowValue) * saturate(FoamStrength);
+    FoamValue = clamp(FoamValue, -1.0f, 1.0f) * 3.0f;
+    return float4(RippleValue, FoamValue, 0.0f, 0.0f);
+}
+
+// pixel shader entry point
+void MainPS(float2 UV : TEXCOORD0, out float4 OutColor : SV_Target0)
+{
+    float4 Canvas = Texture2DSample(GenerateWaterSplatUniforms.CanvasTexture, GenerateWaterSplatUniforms.CanvasTextureSampler, UV);
+    float4 Result = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    for(int i = 0; i < GenerateWaterSplatUniforms.HitLocationNum; i++)
+    {
+        Result += AddForceSplat(UV, i, GenerateWaterSplatUniforms.TexelSizeScalar);
+    }
+    OutColor = Result + Canvas;
+}

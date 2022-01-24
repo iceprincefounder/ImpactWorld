@@ -1,0 +1,47 @@
+// Copyright Tencent Games, Inc. All Rights Reserved.
+
+/*=============================================================================
+	ACMWaterComputeNormal.usf: ACMWater ComputeNormal
+=============================================================================*/
+
+#include "/Engine/Private/Common.ush"
+
+// vertex shader entry point
+void MainVS(
+	in float4 InPosition : ATTRIBUTE0,
+	in float2 InTexCoord : ATTRIBUTE1,
+	out float2 OutTexCoord : TEXCOORD0,
+	out float4 OutPosition : SV_POSITION
+	)
+{
+	DrawRectangle(InPosition, InTexCoord, OutPosition, OutTexCoord);
+}
+
+
+Texture2D HeightTexture;
+SamplerState HeightTextureSampler;
+float HeightScaleScalar;
+float TexelSizeScalar;
+
+
+// pixel shader entry point
+void MainPS(float2 UV : TEXCOORD0, out float4 OutColor : SV_Target0)
+{
+    float2 TexCoordA = UV + TexelSizeScalar * float2(1.0f, 0.0f);
+	float4 HeightColorA = Texture2DSample(HeightTexture, HeightTextureSampler, TexCoordA);
+
+    float2 TexCoordB = UV + TexelSizeScalar * float2(-1.0f, 0.0f);
+    float4 HeightColorB = Texture2DSample(HeightTexture, HeightTextureSampler, TexCoordB);
+
+    float2 TexCoordC = UV + TexelSizeScalar * float2(0.0f, 1.0f);
+    float4 HeightColorC = Texture2DSample(HeightTexture, HeightTextureSampler, TexCoordC);
+
+    float2 TexCoordD = UV + TexelSizeScalar * float2(0.0f, -1.0f);
+    float4 HeightColorD = Texture2DSample(HeightTexture, HeightTextureSampler, TexCoordD);
+
+    float2 VectorPack = (float2(HeightColorA.r, HeightColorC.r) - float2(HeightColorB.r, HeightColorD.r)) * HeightScaleScalar;
+    float3 Vector_R = float3(TexelSizeScalar * 2.0f, 0.0f, VectorPack.r);
+    float3 Vector_G = float3(0.0f, TexelSizeScalar * 2.0f, VectorPack.g);
+    float3 NormalVector = normalize(cross(Vector_R, Vector_G));
+    OutColor = float4(NormalVector, 1.0f);
+}

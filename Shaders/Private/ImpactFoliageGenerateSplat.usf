@@ -1,0 +1,48 @@
+// Copyright Tencent Games, Inc. All Rights Reserved.
+
+/*=============================================================================
+	ACMImpactFoliageGenerateSplat.usf: ImpactFoliage GenerateSplat
+=============================================================================*/
+
+#include "/Engine/Private/Common.ush"
+
+// vertex shader entry point
+void MainVS(
+    in float4 InPosition : ATTRIBUTE0,
+    in float2 InTexCoord : ATTRIBUTE1,
+    out float2 OutTexCoord : TEXCOORD0,
+    out float4 OutPosition : SV_POSITION
+    )
+{
+    DrawRectangle(InPosition, InTexCoord, OutPosition, OutTexCoord);
+}
+
+float4 AddForceSplat(float2 TexCoord, int ParamIndex, float TexelSize)
+{
+	float2 TexCoord_HitStamp = TexCoord - GenerateFoliageSplatUniforms.HitLocationArray[ParamIndex].xy;
+	float4 HitStampColor = Texture2DSample(GenerateFoliageSplatUniforms.HitStampTexture, GenerateFoliageSplatUniforms.HitStampTextureSampler, TexCoord_HitStamp);
+    float HitStampValue = 1.0f - saturate(HitStampColor.r);
+
+    float ImpactSizeRangeMax = GenerateFoliageSplatUniforms.HitParamArray[ParamIndex].w;
+    float ImpactSizeRangeMin = GenerateFoliageSplatUniforms.HitParamArray[ParamIndex].z;
+    float ImpactSizeInPercent = GenerateFoliageSplatUniforms.HitParamArray[ParamIndex].y;
+    float ImpactStrength = GenerateFoliageSplatUniforms.HitParamArray[ParamIndex].x;
+
+    float TexelSizeScale = TexelSize * 1000.0f;
+    float ImpactPowValue = lerp(ImpactSizeRangeMax * TexelSizeScale, ImpactSizeRangeMin * TexelSizeScale, saturate(ImpactSizeInPercent));
+    float ImpactValue = pow(HitStampValue, ImpactPowValue) * saturate(ImpactStrength);
+    ImpactValue = saturate(ImpactValue);
+    return float4(ImpactValue, 0.0, 0.0f, 1.0f);
+}
+
+// pixel shader entry point
+void MainPS(float2 UV : TEXCOORD0, out float4 OutColor : SV_Target0)
+{
+    float4 Canvas = Texture2DSample(GenerateFoliageSplatUniforms.CanvasTexture, GenerateFoliageSplatUniforms.CanvasTextureSampler, UV);
+    float4 Result = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    for(int i = 0; i < GenerateFoliageSplatUniforms.HitLocationNum; i++)
+    {
+        Result += AddForceSplat(UV, i, GenerateFoliageSplatUniforms.TexelSizeScalar);
+    }
+    OutColor = Result + Canvas;
+}
