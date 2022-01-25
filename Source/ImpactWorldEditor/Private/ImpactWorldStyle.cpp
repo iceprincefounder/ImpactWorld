@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Tencent Games, Inc / @KEVINTSUIXU. All Rights Reserved.
 
 #include "ImpactWorldStyle.h"
 #include "ImpactWorldEditorModule.h"

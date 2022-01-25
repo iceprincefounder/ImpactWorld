@@ -1,4 +1,4 @@
-// Copyright Tencent Games Inc. All Rights Reserved.
+// Copyright Tencent Games, Inc / @KEVINTSUIXU. All Rights Reserved.
 
 #pragma once
 #include "CoreMinimal.h"
