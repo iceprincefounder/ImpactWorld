@@ -1,7 +1,7 @@
-// Copyright Tencent Games, Inc. All Rights Reserved.
+// Copyright Tencent Games, Inc / @KEVINTSUIXU. All Rights Reserved.
 
 /*=============================================================================
-	ACMImpactFoliageComputeNormal.usf: ImpactFoliage ComputeNormal
+	ImpactFoliageComputeNormal.usf: ImpactFoliage ComputeNormal
 =============================================================================*/
 
 #include "/Engine/Private/Common.ush"

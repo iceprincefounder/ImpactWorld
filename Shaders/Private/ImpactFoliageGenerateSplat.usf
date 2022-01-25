@@ -1,7 +1,7 @@
-// Copyright Tencent Games, Inc. All Rights Reserved.
+// Copyright Tencent Games, Inc / @KEVINTSUIXU. All Rights Reserved.
 
 /*=============================================================================
-	ACMImpactFoliageGenerateSplat.usf: ImpactFoliage GenerateSplat
+	ImpactFoliageGenerateSplat.usf: ImpactFoliage GenerateSplat
 =============================================================================*/
 
 #include "/Engine/Private/Common.ush"

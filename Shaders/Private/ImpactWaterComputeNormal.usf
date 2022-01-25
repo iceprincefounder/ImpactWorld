@@ -1,7 +1,7 @@
-// Copyright Tencent Games, Inc. All Rights Reserved.
+// Copyright Tencent Games, Inc / @KEVINTSUIXU. All Rights Reserved.
 
 /*=============================================================================
-	ACMWaterComputeNormal.usf: ACMWater ComputeNormal
+	ImpactWaterComputeNormal.usf: ImpactWater ComputeNormal
 =============================================================================*/
 
 #include "/Engine/Private/Common.ush"

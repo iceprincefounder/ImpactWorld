@@ -1,7 +1,7 @@
-// Copyright Tencent Games, Inc. All Rights Reserved.
+// Copyright Tencent Games, Inc / @KEVINTSUIXU. All Rights Reserved.
 
 /*=============================================================================
-	ACMWaterPropagateSplat.usf: ACMWater PropagateSplat
+	ImpactWaterPropagateSplat.usf: ImpactWater PropagateSplat
 =============================================================================*/
 
 #include "/Engine/Private/Common.ush"
